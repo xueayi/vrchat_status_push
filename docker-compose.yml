@@ -1,0 +1,7 @@
+services:
+  vrchat-status-push:
+    build: .
+    volumes:
+      - ./config.json:/app/config.json:ro
+      - ./data:/app/data
+    restart: unless-stopped
