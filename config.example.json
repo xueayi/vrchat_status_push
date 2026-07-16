@@ -1,0 +1,16 @@
+{
+  "poll_interval_seconds": 120,
+  "proxy": null,
+  "webhooks": [
+    {
+      "name": "飘雪",
+      "url": "http://example.com/send",
+      "umo": "your_qq_group_or_user",
+      "message_type": "text",
+      "callback_url": null,
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN"
+      }
+    }
+  ]
+}
