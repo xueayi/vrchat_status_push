@@ -67,31 +67,36 @@ async def run() -> None:
             # Windows 不支持 add_signal_handler
             pass
 
+    round_count = 0
     while not stop_event.is_set():
+        round_count += 1
         try:
             # 拉取
-            logger.info("拉取 VRChat 状态...")
+            logger.info("[第 %d 轮] 拉取 VRChat 状态...", round_count)
             new_state = await fetch(config.proxy)
 
-            # 检测变化
-            changes = detect(old_state, new_state)
-
-            if changes:
-                # 渲染消息
-                content = format_changes(changes)
-                logger.info("检测到 %d 项变化，准备推送", len(changes))
-
-                # 推送
-                await dispatch(config.webhooks, content, config.proxy)
+            if new_state is None:
+                logger.warning("[第 %d 轮] 拉取失败，跳过本轮，等待下次轮询", round_count)
             else:
-                logger.debug("本轮无变化")
+                # 检测变化
+                changes = detect(old_state, new_state)
 
-            # 保存状态
-            await save_state(str(STATE_PATH), new_state)
-            old_state = new_state
+                if changes:
+                    logger.info("[第 %d 轮] 检测到 %d 项变化", round_count, len(changes))
+                    # 渲染消息
+                    content = format_changes(changes)
+                    logger.info("[第 %d 轮] 推送内容:\n%s", round_count, content)
+                    # 推送
+                    await dispatch(config.webhooks, content, config.proxy)
+                else:
+                    logger.info("[第 %d 轮] 状态无变化", round_count)
+
+                # 保存状态
+                await save_state(str(STATE_PATH), new_state)
+                old_state = new_state
 
         except Exception:
-            logger.exception("本轮轮询出现未预期错误")
+            logger.exception("[第 %d 轮] 出现未预期错误", round_count)
 
         # 等待下一轮（支持优雅退出）
         try:

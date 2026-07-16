@@ -49,11 +49,11 @@ async def test_fetch_retry_then_succeed():
 
 @pytest.mark.asyncio
 async def test_fetch_all_retries_exhausted():
-    """三次都失败时抛出异常"""
+    """三次都失败时返回 None"""
     with aioresponses() as m:
         m.get(STATUS_API_URL, exception=ClientError("timeout"))
         m.get(STATUS_API_URL, exception=ClientError("timeout"))
         m.get(STATUS_API_URL, exception=ClientError("timeout"))
 
-        with pytest.raises(ClientError):
-            await fetch(proxy=None)
+        result = await fetch(proxy=None)
+        assert result is None

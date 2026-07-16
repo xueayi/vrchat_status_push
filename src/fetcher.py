@@ -14,15 +14,12 @@ _RETRY_DELAYS = (5, 15, 30)
 _TIMEOUT = aiohttp.ClientTimeout(total=30)
 
 
-async def fetch(proxy: str | None) -> dict:
-    """拉取 summary.json，自动重试。成功返回 dict，全部失败抛出异常."""
-    last_error: Exception | None = None
-
+async def fetch(proxy: str | None) -> dict | None:
+    """拉取 summary.json，自动重试。成功返回 dict，全部失败返回 None."""
     for attempt, delay in enumerate(_RETRY_DELAYS):
         try:
             return await _do_fetch(proxy)
         except Exception as e:
-            last_error = e
             logger.warning(
                 "拉取状态失败 (第 %d/%d 次): %s",
                 attempt + 1,
@@ -32,8 +29,8 @@ async def fetch(proxy: str | None) -> dict:
             if attempt < len(_RETRY_DELAYS) - 1:
                 await asyncio.sleep(delay)
 
-    logger.error("拉取状态全部重试 (%d 次) 均失败", len(_RETRY_DELAYS))
-    raise last_error  # type: ignore[misc]
+    logger.error("拉取状态全部重试 (%d 次) 均失败，跳过本轮", len(_RETRY_DELAYS))
+    return None
 
 
 async def _do_fetch(proxy: str | None) -> dict:

@@ -20,7 +20,8 @@ def test_format_status_only():
     result = format_changes(changes)
     assert "【VRChat 状态】" in result
     assert "整体状态变更" in result
-    assert "All Systems Operational → Partial System Outage" in result
+    assert "所有系统正常" in result
+    assert "部分系统中断" in result
 
 
 def test_format_component_only():
@@ -35,7 +36,8 @@ def test_format_component_only():
     result = format_changes(changes)
     assert "【VRChat 组件】" in result
     assert "VRChat Web" in result
-    assert "operational → major_outage" in result
+    assert "正常运行" in result
+    assert "严重中断" in result
 
 
 def test_format_incident_new():
@@ -50,8 +52,8 @@ def test_format_incident_new():
     result = format_changes(changes)
     assert "【VRChat 事件】" in result
     assert "连接异常" in result
-    assert "investigating" in result
-    assert "critical" in result
+    assert "调查中" in result
+    assert "严重故障" in result
 
 
 def test_format_maintenance():
@@ -66,7 +68,7 @@ def test_format_maintenance():
     result = format_changes(changes)
     assert "【VRChat 维护】" in result
     assert "服务器升级" in result
-    assert "scheduled" in result
+    assert "已计划" in result
 
 
 def test_format_multiple_types_together():
