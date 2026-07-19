@@ -1,0 +1,14 @@
+[Unit]
+Description=VRChat Status Webhook Push
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/vrchat-status-push/main.py -c /opt/vrchat-status-push/config.json -s /opt/vrchat-status-push/data/state.json
+Restart=always
+RestartSec=30
+User=nobody
+
+[Install]
+WantedBy=multi-user.target

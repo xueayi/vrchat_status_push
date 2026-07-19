@@ -5,23 +5,30 @@
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import logging
 import signal
 import sys
-from pathlib import Path
 
 from src.config import load_config
 from src.fetcher import fetch
 from src.detector import detect
-from src.formatter import format_changes
 from src.dispatcher import dispatch
 from src.state_store import load as load_state, save as save_state
 
 logger = logging.getLogger(__name__)
 
-CONFIG_PATH = Path("config.json")
-STATE_PATH = Path("data/state.json")
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="VRChat Status Webhook Push")
+    parser.add_argument(
+        "-c", "--config", default="config.json", help="配置文件路径 (默认: config.json)"
+    )
+    parser.add_argument(
+        "-s", "--state", default="data/state.json", help="状态文件路径 (默认: data/state.json)"
+    )
+    return parser
 
 
 def setup_logging() -> None:
@@ -33,13 +40,13 @@ def setup_logging() -> None:
     )
 
 
-async def run() -> None:
+async def run(config_path: str, state_path: str) -> None:
     """主循环."""
     setup_logging()
 
     # 加载配置
-    logger.info("加载配置: %s", CONFIG_PATH)
-    config = load_config(str(CONFIG_PATH))
+    logger.info("加载配置: %s", config_path)
+    config = load_config(config_path)
     logger.info(
         "配置加载完成 — poll_interval=%ds, proxy=%s, webhooks=%d",
         config.poll_interval_seconds,
@@ -48,7 +55,7 @@ async def run() -> None:
     )
 
     # 加载上次状态
-    old_state = await load_state(str(STATE_PATH))
+    old_state = await load_state(state_path)
     if old_state is None:
         logger.info("首次运行，本轮仅保存状态不推送")
 
@@ -83,16 +90,14 @@ async def run() -> None:
 
                 if changes:
                     logger.info("[第 %d 轮] 检测到 %d 项变化", round_count, len(changes))
-                    # 渲染消息
-                    content = format_changes(changes)
-                    logger.info("[第 %d 轮] 推送内容:\n%s", round_count, content)
-                    # 推送
-                    await dispatch(config.webhooks, content, config.proxy)
+                    # 推送（dispatcher 内部按平台渲染）
+                    indicator = new_state.get("status", {}).get("indicator", "none")
+                    await dispatch(config.webhooks, changes, indicator, config.proxy)
                 else:
                     logger.info("[第 %d 轮] 状态无变化", round_count)
 
                 # 保存状态
-                await save_state(str(STATE_PATH), new_state)
+                await save_state(state_path, new_state)
                 old_state = new_state
 
         except Exception:
@@ -110,8 +115,10 @@ async def run() -> None:
 
 def main() -> None:
     """入口."""
+    parser = build_parser()
+    args = parser.parse_args()
     try:
-        asyncio.run(run())
+        asyncio.run(run(args.config, args.state))
     except KeyboardInterrupt:
         pass
     except Exception as e:

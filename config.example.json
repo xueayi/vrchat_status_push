@@ -1,16 +1,23 @@
 {
-  "poll_interval_seconds": 120,
+  "poll_interval_seconds": 900,
   "proxy": null,
   "webhooks": [
     {
-      "name": "飘雪",
+      "name": "QQ机器人",
       "url": "http://example.com/send",
-      "umo": "your_qq_group_or_user",
+      "platform": "qq",
+      "umo": "BotName:FriendMessage:QQ号",
       "message_type": "text",
       "callback_url": null,
       "headers": {
         "Authorization": "Bearer YOUR_TOKEN"
       }
+    },
+    {
+      "name": "飞书通知",
+      "url": "https://open.feishu.cn/open-apis/bot/v2/hook/xxx",
+      "platform": "feishu",
+      "secret": "签名密钥（可选）"
     }
   ]
 }

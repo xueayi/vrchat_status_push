@@ -13,9 +13,11 @@ class WebhookConfig:
 
     name: str
     url: str
-    umo: str
+    platform: str = "qq"  # "qq" | "feishu"
+    umo: str = ""  # QQ 必填，飞书不需要
     message_type: str = "text"
     callback_url: str | None = None
+    secret: str | None = None  # 飞书签名密钥（可选）
     headers: dict[str, str] = field(default_factory=dict)
 
 
@@ -52,22 +54,25 @@ def load_config(path: str) -> Config:
 
         name = wh.get("name")
         url = wh.get("url")
-        umo = wh.get("umo")
+        platform = wh.get("platform", "qq")
+        umo = wh.get("umo", "")
 
         if not name:
             raise ValueError(f"webhooks[{i}] 缺少必填字段: name")
         if not url:
             raise ValueError(f"webhooks[{i}] 缺少必填字段: url")
-        if not umo:
-            raise ValueError(f"webhooks[{i}] 缺少必填字段: umo")
+        if platform not in ("qq", "feishu"):
+            raise ValueError(f"webhooks[{i}] 不支持的平台: {platform}，支持 qq / feishu")
 
         webhooks.append(
             WebhookConfig(
                 name=str(name),
                 url=str(url),
+                platform=str(platform),
                 umo=str(umo),
                 message_type=str(wh.get("message_type", "text")),
                 callback_url=wh.get("callback_url"),
+                secret=wh.get("secret"),
                 headers=wh.get("headers", {}),
             )
         )

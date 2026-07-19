@@ -25,8 +25,10 @@ def test_load_minimal_config():
         assert w.name == "test"
         assert w.url == "http://example.com/webhook"
         assert w.umo == "group_1"
+        assert w.platform == "qq"  # 默认平台
         assert w.message_type == "text"
         assert w.callback_url is None
+        assert w.secret is None
         assert w.headers == {}
     finally:
         Path(path).unlink()
@@ -143,6 +145,46 @@ def test_invalid_json():
 
     try:
         with pytest.raises(ValueError, match="JSON"):
+            load_config(path)
+    finally:
+        Path(path).unlink()
+
+
+def test_feishu_platform():
+    """飞书平台配置（umo 不需要）"""
+    data = {
+        "webhooks": [
+            {
+                "name": "feishu_bot",
+                "url": "https://open.feishu.cn/open-apis/bot/v2/hook/xxx",
+                "platform": "feishu",
+                "secret": "my_secret",
+            }
+        ]
+    }
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        json.dump(data, f)
+        path = f.name
+
+    try:
+        cfg = load_config(path)
+        w = cfg.webhooks[0]
+        assert w.platform == "feishu"
+        assert w.secret == "my_secret"
+        assert w.umo == ""
+    finally:
+        Path(path).unlink()
+
+
+def test_unsupported_platform():
+    """不支持的 platform 报错"""
+    data = {"webhooks": [{"name": "x", "url": "http://x.com", "platform": "wechat"}]}
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        json.dump(data, f)
+        path = f.name
+
+    try:
+        with pytest.raises(ValueError, match="不支持的平台"):
             load_config(path)
     finally:
         Path(path).unlink()
