@@ -86,8 +86,8 @@ sudo systemctl enable --now vrchat-status-push
 
 ```
 【VRChat 状态】
-整体状态变更: 所有系统正常 → 部分系统中断 (Partial Outage)
-更新时间：2026-07-16 17:30:00 (UTC+8)
+整体状态变更: 所有系统正常 → 部分系统中断
+更新时间：2026-07-19 19:00:00 (UTC+8)
 ```
 
 **飞书卡片：**
@@ -98,7 +98,7 @@ sudo systemctl enable --now vrchat-status-push
 
 ```
 vrchat_status_push/
-├── main.py                     # 入口（支持 -c -s CLI 参数）
+├── main.py                     # 入口（-c -s --once CLI 参数）
 ├── config.example.json
 ├── vrchat-status-push.service  # systemd 服务文件
 ├── Dockerfile
@@ -120,6 +120,13 @@ vrchat_status_push/
 python main.py -h
   -c, --config  配置文件路径 (默认: config.json)
   -s, --state   状态文件路径 (默认: data/state.json)
+  --once        仅运行一轮后退出（手动触发用）
+```
+
+手动触发推送：
+
+```bash
+python main.py --once
 ```
 
 ## 测试

@@ -28,6 +28,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-s", "--state", default="data/state.json", help="状态文件路径 (默认: data/state.json)"
     )
+    parser.add_argument(
+        "--once", action="store_true", help="仅运行一轮后退出"
+    )
     return parser
 
 
@@ -40,7 +43,7 @@ def setup_logging() -> None:
     )
 
 
-async def run(config_path: str, state_path: str) -> None:
+async def run(config_path: str, state_path: str, once: bool = False) -> None:
     """主循环."""
     setup_logging()
 
@@ -103,6 +106,10 @@ async def run(config_path: str, state_path: str) -> None:
         except Exception:
             logger.exception("[第 %d 轮] 出现未预期错误", round_count)
 
+        if once:
+            logger.info("--once 模式，单轮完成，退出")
+            break
+
         # 等待下一轮（支持优雅退出）
         try:
             await asyncio.wait_for(stop_event.wait(), timeout=config.poll_interval_seconds)
@@ -118,7 +125,7 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     try:
-        asyncio.run(run(args.config, args.state))
+        asyncio.run(run(args.config, args.state, args.once))
     except KeyboardInterrupt:
         pass
     except Exception as e:
