@@ -78,6 +78,10 @@ docker compose up -d
 ```bash
 sudo cp vrchat-status-push.service /etc/systemd/system/
 sudo systemctl enable --now vrchat-status-push
+
+# 查看运行状态
+systemctl status vrchat-status-push
+journalctl -u vrchat-status-push -f
 ```
 
 ## 消息示例
