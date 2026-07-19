@@ -73,21 +73,12 @@ python main.py -c config.json -s data/state.json
 docker compose up -d
 ```
 
-**Linux systemd：**
+**Linux systemd（一条命令安装）：**
 
 ```bash
-# 自适应安装（自动检测路径和 Python 位置）
-sudo bash install.sh
-
-# 或手动安装
-sudo cp vrchat-status-push.service /etc/systemd/system/
-# 编辑 /etc/systemd/system/vrchat-status-push.service 替换路径
-sudo systemctl daemon-reload
-sudo systemctl enable --now vrchat-status-push
-
-# 查看运行状态
-systemctl status vrchat-status-push
-journalctl -u vrchat-status-push -f
+sudo bash install.sh            # 安装并启动
+sudo bash install.sh status     # 查看服务状态 + 程序摘要
+sudo bash install.sh uninstall  # 卸载
 ```
 
 ## 消息示例
@@ -103,26 +94,6 @@ journalctl -u vrchat-status-push -f
 **飞书卡片：**
 
 卡片 header 颜色根据状态自动切换：正常→绿、轻微→黄、重大→橙、严重→红。body 以 markdown 展示详情，底部按钮可跳转 status.vrchat.com。
-
-## 项目结构
-
-```
-vrchat_status_push/
-├── main.py                     # 入口（-c -s --once CLI 参数）
-├── config.example.json
-├── vrchat-status-push.service  # systemd 服务文件
-├── Dockerfile
-├── docker-compose.yml
-├── src/
-│   ├── config.py               # 配置加载校验
-│   ├── fetcher.py              # API 拉取 + 重试
-│   ├── detector.py             # 变化检测
-│   ├── formatter.py            # QQ 文本渲染
-│   ├── feishu_card.py          # 飞书卡片构建
-│   ├── dispatcher.py           # 并发推送（按平台分发）
-│   └── state_store.py          # 状态持久化
-└── tests/
-```
 
 ## CLI 参数
 
