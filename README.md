@@ -76,7 +76,13 @@ docker compose up -d
 **Linux systemd：**
 
 ```bash
+# 自适应安装（自动检测路径和 Python 位置）
+sudo bash install.sh
+
+# 或手动安装
 sudo cp vrchat-status-push.service /etc/systemd/system/
+# 编辑 /etc/systemd/system/vrchat-status-push.service 替换路径
+sudo systemctl daemon-reload
 sudo systemctl enable --now vrchat-status-push
 
 # 查看运行状态
