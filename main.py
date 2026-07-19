@@ -12,6 +12,7 @@ import signal
 import sys
 
 from src.config import load_config
+from src.detector import ChangeEvent
 from src.fetcher import fetch
 from src.detector import detect
 from src.dispatcher import dispatch
@@ -87,13 +88,35 @@ async def run(config_path: str, state_path: str, once: bool = False) -> None:
 
             if new_state is None:
                 logger.warning("[第 %d 轮] 拉取失败，跳过本轮，等待下次轮询", round_count)
+            elif once:
+                # --once 模式：绕过变化检测，直接推送测试消息
+                status = new_state.get("status", {})
+                indicator = status.get("indicator", "none")
+                desc = status.get("description", "N/A")
+                enabled_hooks = [w for w in config.webhooks if w.enabled]
+                hook_names = ", ".join(w.name for w in enabled_hooks)
+
+                test_change = ChangeEvent(
+                    type="status",
+                    title="手动测试推送",
+                    details=(
+                        f"当前状态: {desc}\n"
+                        f"推送渠道: {len(enabled_hooks)} 个 ({hook_names})"
+                    ),
+                )
+                logger.info("--once 测试推送，跳过变化检测")
+                await dispatch(config.webhooks, [test_change], indicator, config.proxy)
+                # 保存状态
+                await save_state(state_path, new_state)
+                old_state = new_state
+                logger.info("--once 完成，退出")
+                break
             else:
-                # 检测变化
+                # 正常模式：检测变化
                 changes = detect(old_state, new_state)
 
                 if changes:
                     logger.info("[第 %d 轮] 检测到 %d 项变化", round_count, len(changes))
-                    # 推送（dispatcher 内部按平台渲染）
                     indicator = new_state.get("status", {}).get("indicator", "none")
                     await dispatch(config.webhooks, changes, indicator, config.proxy)
                 else:
@@ -105,10 +128,6 @@ async def run(config_path: str, state_path: str, once: bool = False) -> None:
 
         except Exception:
             logger.exception("[第 %d 轮] 出现未预期错误", round_count)
-
-        if once:
-            logger.info("--once 模式，单轮完成，退出")
-            break
 
         # 等待下一轮（支持优雅退出）
         try:
