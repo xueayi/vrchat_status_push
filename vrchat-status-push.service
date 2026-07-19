@@ -11,7 +11,7 @@ ExecStart=/usr/bin/python3 /opt/vrchat-status-push/main.py -c /opt/vrchat-status
 WorkingDirectory=/opt/vrchat-status-push
 Restart=always
 RestartSec=30
-User=nobody
+User=nobody  # 可按需改为你的用户名
 
 [Install]
 WantedBy=multi-user.target
