@@ -27,7 +27,7 @@ ExecStart=$PYTHON $PROJECT_DIR/main.py -c $PROJECT_DIR/config.json -s $PROJECT_D
 WorkingDirectory=$PROJECT_DIR
 Restart=always
 RestartSec=30
-User=$USER
+User=${SUDO_USER:-$USER}
 
 [Install]
 WantedBy=multi-user.target
