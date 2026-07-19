@@ -30,7 +30,10 @@ def build_parser() -> argparse.ArgumentParser:
         "-s", "--state", default="data/state.json", help="状态文件路径 (默认: data/state.json)"
     )
     parser.add_argument(
-        "--once", action="store_true", help="仅运行一轮后退出"
+        "--once", action="store_true", help="手动测试推送：绕过变化检测，直接发送一条测试消息"
+    )
+    parser.add_argument(
+        "--status", action="store_true", help="查看当前状态摘要"
     )
     return parser
 
@@ -139,12 +142,38 @@ async def run(config_path: str, state_path: str, once: bool = False) -> None:
     logger.info("已退出")
 
 
+async def show_status(config_path: str, state_path: str) -> None:
+    """打印当前状态摘要."""
+    config = load_config(config_path)
+    old_state = await load_state(state_path)
+
+    status = old_state.get("status", {}) if old_state else {}
+    page = old_state.get("page", {}) if old_state else {}
+    components = old_state.get("components", []) if old_state else []
+    incidents = old_state.get("incidents", []) if old_state else []
+    maintenances = old_state.get("scheduled_maintenances", []) if old_state else []
+
+    enabled = [w.name for w in config.webhooks if w.enabled]
+    disabled = [w.name for w in config.webhooks if not w.enabled]
+
+    print(f"VRChat 状态: {status.get('indicator', '未知')} — {status.get('description', '未知')}")
+    print(f"数据更新时间: {page.get('updated_at', '无')}")
+    print(f"组件数: {len(components)}  活跃事件: {len(incidents)}  计划维护: {len(maintenances)}")
+    print(f"轮询间隔: {config.poll_interval_seconds}s  代理: {config.proxy or '无'}")
+    print(f"已启用的 webhook ({len(enabled)}): {', '.join(enabled) if enabled else '无'}")
+    if disabled:
+        print(f"已禁用的 webhook ({len(disabled)}): {', '.join(disabled)}")
+
+
 def main() -> None:
     """入口."""
     parser = build_parser()
     args = parser.parse_args()
     try:
-        asyncio.run(run(args.config, args.state, args.once))
+        if args.status:
+            asyncio.run(show_status(args.config, args.state))
+        else:
+            asyncio.run(run(args.config, args.state, args.once))
     except KeyboardInterrupt:
         pass
     except Exception as e:

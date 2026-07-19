@@ -120,11 +120,15 @@ vrchat_status_push/
 python main.py -h
   -c, --config  配置文件路径 (默认: config.json)
   -s, --state   状态文件路径 (默认: data/state.json)
-  --once        手动测试推送：绕过变化检测，直接发送一条测试消息
+  --once        手动测试推送：绕过变化检测，直接发送测试消息
+  --status      查看当前状态摘要
 ```
 
 ```bash
-# 手动触发一次测试推送（始终发送，不检查状态变化）
+# 查看状态
+python main.py --status
+
+# 手动测试推送
 python main.py --once
 ```
 
