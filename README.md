@@ -77,7 +77,7 @@ docker compose up -d
 
 ```bash
 sudo bash install.sh            # 安装并启动
-sudo bash install.sh status     # 查看服务状态 + 程序摘要
+bash install.sh status     # 查看服务状态 + 程序摘要
 sudo bash install.sh uninstall  # 卸载
 ```
 
