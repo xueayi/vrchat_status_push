@@ -9,6 +9,7 @@
       "umo": "BotName:FriendMessage:QQ号",
       "message_type": "text",
       "callback_url": null,
+      "enabled": true,
       "headers": {
         "Authorization": "Bearer YOUR_TOKEN"
       }
@@ -17,7 +18,8 @@
       "name": "飞书通知",
       "url": "https://open.feishu.cn/open-apis/bot/v2/hook/xxx",
       "platform": "feishu",
-      "secret": "签名密钥（可选）"
+      "secret": "签名密钥（可选）",
+      "enabled": true
     }
   ]
 }
