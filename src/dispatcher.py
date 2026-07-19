@@ -26,12 +26,15 @@ async def dispatch(
     status_indicator: str,
     proxy: str | None,
 ) -> None:
-    """并发发送消息到所有 webhook。按平台构建不同请求体。"""
-    if not webhooks:
+    """并发发送消息到所有启用的 webhook。按平台构建不同请求体。"""
+    # 过滤已禁用的 webhook
+    enabled = [w for w in webhooks if w.enabled]
+    if not enabled:
+        logger.info("所有 webhook 均已禁用，跳过推送")
         return
 
-    qq_hooks = [w for w in webhooks if w.platform == "qq"]
-    feishu_hooks = [w for w in webhooks if w.platform == "feishu"]
+    qq_hooks = [w for w in enabled if w.platform == "qq"]
+    feishu_hooks = [w for w in enabled if w.platform == "feishu"]
 
     tasks: list[asyncio.Task] = []
     for wh in qq_hooks:
@@ -95,15 +98,29 @@ async def _post(wh: WebhookConfig, payload: dict, proxy: str | None) -> None:
                 headers=wh.headers,
                 proxy=proxy,
             ) as resp:
+                body = await resp.text()
                 if resp.status >= 400:
-                    body = await resp.text()
                     logger.error(
                         "webhook [%s] 返回错误 %d: %s",
-                        wh.name,
-                        resp.status,
-                        body[:200],
+                        wh.name, resp.status, body[:200],
                     )
-                else:
-                    logger.info("webhook [%s] 发送成功", wh.name)
+                    return
+
+                # 飞书 API 返回 HTTP 200 但 code != 0 也表示失败
+                if wh.platform == "feishu":
+                    import json
+                    try:
+                        result = json.loads(body)
+                        code = result.get("code", -1)
+                        if code != 0:
+                            logger.error(
+                                "webhook [%s] 飞书返回错误 code=%d: %s",
+                                wh.name, code, result.get("msg", body[:200]),
+                            )
+                            return
+                    except json.JSONDecodeError:
+                        pass
+
+                logger.info("webhook [%s] 发送成功", wh.name)
     except Exception as e:
         logger.error("webhook [%s] 发送失败: %s", wh.name, e)

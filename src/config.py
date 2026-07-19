@@ -18,6 +18,7 @@ class WebhookConfig:
     message_type: str = "text"
     callback_url: str | None = None
     secret: str | None = None  # 飞书签名密钥（可选）
+    enabled: bool = True
     headers: dict[str, str] = field(default_factory=dict)
 
 
@@ -73,6 +74,7 @@ def load_config(path: str) -> Config:
                 message_type=str(wh.get("message_type", "text")),
                 callback_url=wh.get("callback_url"),
                 secret=wh.get("secret"),
+                enabled=wh.get("enabled", True),
                 headers=wh.get("headers", {}),
             )
         )

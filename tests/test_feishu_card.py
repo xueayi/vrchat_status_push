@@ -53,18 +53,14 @@ def test_body_contains_markdown():
     assert "组件状态变更" in markdown["content"]
 
 
-def test_has_view_details_button():
-    """卡片底部有查看详情按钮"""
+def test_has_view_details_link():
+    """卡片 markdown 包含查看详情链接"""
     result = build_feishu_card([], "none")
 
     elements = result["card"]["body"]["elements"]
-    action = elements[-1]
-    assert action["tag"] == "action"
-    btn = action["actions"][0]
-    assert btn["tag"] == "button"
-    assert btn["text"]["content"] == "查看详情"
-    assert btn["behaviors"][0]["type"] == "open_url"
-    assert "status.vrchat.com" in btn["behaviors"][0]["default_url"]
+    markdown = elements[0]
+    assert markdown["tag"] == "markdown"
+    assert "status.vrchat.com" in markdown["content"]
 
 
 def test_empty_changes():

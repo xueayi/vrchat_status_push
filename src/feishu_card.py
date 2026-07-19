@@ -71,6 +71,8 @@ def build_feishu_card(
         lines.append("")
 
     lines.append(f"更新时间：{now} (UTC+8)")
+    lines.append("")
+    lines.append("[查看详情](https://status.vrchat.com)")
 
     markdown_content = "\n".join(lines)
 
@@ -95,28 +97,6 @@ def build_feishu_card(
                         "content": markdown_content,
                         "text_align": "left",
                         "text_size": "normal_v2",
-                    },
-                    {
-                        "tag": "action",
-                        "layout": "default",
-                        "margin": "8px 0px 0px 0px",
-                        "actions": [
-                            {
-                                "tag": "button",
-                                "text": {
-                                    "tag": "plain_text",
-                                    "content": "查看详情",
-                                },
-                                "type": "default",
-                                "size": "medium",
-                                "behaviors": [
-                                    {
-                                        "type": "open_url",
-                                        "default_url": "https://status.vrchat.com",
-                                    }
-                                ],
-                            }
-                        ],
                     },
                 ],
             },
