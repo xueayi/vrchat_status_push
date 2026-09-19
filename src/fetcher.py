@@ -35,15 +35,7 @@ async def fetch(proxy: str | None) -> dict | None:
 
 async def _do_fetch(proxy: str | None) -> dict:
     """单次 HTTP GET 请求."""
-    connector = None
-    if proxy:
-        connector = aiohttp.TCPConnector()
-    else:
-        connector = aiohttp.TCPConnector()
-
-    async with aiohttp.ClientSession(
-        connector=connector, timeout=_TIMEOUT
-    ) as session:
+    async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
         async with session.get(STATUS_API_URL, proxy=proxy) as resp:
             resp.raise_for_status()
             return await resp.json()
